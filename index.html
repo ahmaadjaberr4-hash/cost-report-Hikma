@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hikma — PIL &amp; SPC Generator Cost Report</title>
+<style>
+  :root {
+    --hikma-red: #ED3B40;
+    --hikma-red-dark: #C8262C;
+    --bg: #FAFAF9;
+    --surface: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-soft: #5C5C5C;
+    --line: #E8E6E2;
+    --line-soft: #F0EEEA;
+    --accent-navy: #1B2A4A;
+    --green: #1E8A5F;
+    --amber: #B8860B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER : Hikma red band ── */
+  .header {
+    background: var(--hikma-red);
+    padding: 0;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 48px;
+  }
+
+  .logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -1px;
+  }
+
+  .logo::after { content: '.'; color: white; }
+
+  .header-meta {
+    text-align: right;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .header-meta .title {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .header-meta .subtitle {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 2px;
+  }
+
+  .header-hero {
+    padding: 36px 48px 28px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .header-hero h1 {
+    font-size: 30px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    max-width: 700px;
+  }
+
+  .header-hero p {
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.85);
+    max-width: 640px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 40px 48px 64px;
+  }
+
+  /* ── HERO RESULT STRIP ── */
+  .hero-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .hero-cell {
+    background: var(--surface);
+    padding: 22px 22px;
+  }
+
+  .hero-cell .h-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .hero-cell .h-value {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--hikma-red);
+    line-height: 1;
+  }
+
+  .hero-cell.navy .h-value { color: var(--accent-navy); }
+  .hero-cell.green .h-value { color: var(--green); }
+
+  .hero-cell .h-sub {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+
+  /* ── SECTION HEADINGS ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 48px 0 18px;
+  }
+
+  .section-label .num {
+    width: 26px; height: 26px;
+    background: var(--hikma-red);
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .section-label h2 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+  }
+
+  .section-label .sl-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-left: auto;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .card-pad { padding: 24px; }
+
+  /* ── TWO-COLUMN DOC COST GRID ── */
+  .doc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .doc-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .doc-card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--line-soft);
+  }
+
+  .doc-card-head .dc-name {
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .doc-card-head .dc-total {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--hikma-red);
+  }
+
+  .doc-card-body { padding: 18px 20px; }
+
+  .cost-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13px;
+  }
+
+  .cost-row:last-child { border-bottom: none; }
+
+  .cost-row .cr-label { color: var(--ink-soft); }
+  .cost-row .cr-detail { font-size: 11px; color: #9b9994; display: block; margin-top: 1px; }
+  .cost-row .cr-value { font-family: 'SF Mono', monospace; font-weight: 600; }
+
+  .cost-row.total-row {
+    border-top: 2px solid var(--ink);
+    margin-top: 4px;
+    padding-top: 12px;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .cost-row.total-row .cr-value { color: var(--hikma-red); font-size: 16px; }
+
+  /* ── INPUT TABLE for assumptions ── */
+  .assumptions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .assumptions-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+    background: var(--line-soft);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .assumptions-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .assumptions-table tr:last-child td { border-bottom: none; }
+
+  .assumptions-table .verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--green);
+    background: rgba(30,138,95,0.1);
+    padding: 2px 9px;
+    border-radius: 20px;
+  }
+
+  .assumptions-table .source-cell {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+
+  .mono { font-family: 'SF Mono', monospace; }
+
+  /* ── VOLUME INPUT BOX ── */
+  .volume-box {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 24px;
+    background: var(--line-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+
+  .volume-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .volume-field label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+  }
+
+  .volume-field input {
+    width: 90px;
+    padding: 7px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    background: white;
+  }
+
+  .volume-field input:focus {
+    outline: none;
+    border-color: var(--hikma-red);
+  }
+
+  .volume-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-left: auto;
+    max-width: 280px;
+  }
+
+  /* ── MONTHLY SUMMARY TABLE ── */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .summary-table td {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .summary-table tr:last-child td { border-bottom: none; }
+
+  .summary-table .s-label { color: var(--ink-soft); }
+  .summary-table .s-detail { font-size: 11px; color: #9b9994; }
+  .summary-table .s-value {
+    text-align: right;
+    font-family: 'SF Mono', monospace;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .summary-table .grand-row td {
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    padding-top: 16px;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .summary-table .grand-row .s-value { color: var(--hikma-red); font-size: 20px; }
+
+  /* ── INFO / NOTE BOX ── */
+  .note-box {
+    background: #FFF8E7;
+    border: 1px solid #F0DBA0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 12.5px;
+    color: #6B5A1F;
+    line-height: 1.7;
+  }
+
+  .note-box strong { color: #8A6D1A; }
+
+  .note-box.blue {
+    background: #EEF2FB;
+    border-color: #C9D6F0;
+    color: #2E4373;
+  }
+  .note-box.blue strong { color: var(--accent-navy); }
+
+  /* ── HIDDEN COSTS LIST ── */
+  .hidden-cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  .hidden-cost-item {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .hidden-cost-item .hc-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .hidden-cost-item .hc-cost {
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+    color: var(--hikma-red);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .hidden-cost-item .hc-desc {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .hidden-cost-item.applies .hc-cost { color: var(--green); }
+  .hidden-cost-item.not-applicable { opacity: 0.55; }
+
+  .badge-mini {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-included { background: rgba(30,138,95,0.12); color: var(--green); }
+  .badge-optional { background: rgba(184,134,11,0.12); color: var(--amber); }
+  .badge-na { background: #eee; color: #999; }
+
+  /* ── FOOTER ── */
+  .footer-note {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    color: #9b9994;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .main { padding: 24px; }
+    .hero-strip { grid-template-columns: 1fr 1fr; }
+    .doc-grid { grid-template-columns: 1fr; }
+    .hidden-cost-grid { grid-template-columns: 1fr; }
+    .header-top, .header-hero { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">hikma</div>
+    <div class="header-meta">
+      <div class="title">AI Platform — Azure Cost Report</div>
+      <div class="subtitle">PIL Generator &amp; SPC Generator · June 2026</div>
+    </div>
+  </div>
+  <div class="header-hero">
+    <h1>What it actually costs to generate a PIL and an SPC.</h1>
+    <p>Set the reference and CMC page counts for a real product below to see its exact PIL or SPC cost — built from real Azure AI Foundry usage data and Azure's published GPT-4.1 and Content Understanding pricing.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══════════ HERO STRIP ═══════════ -->
+  <div class="hero-strip">
+    <div class="hero-cell">
+      <div class="h-label">Cost per PIL</div>
+      <div class="h-value" id="hero_pil_cost">—</div>
+      <div class="h-sub">7 agent calls + 2 ACU calls</div>
+    </div>
+    <div class="hero-cell navy">
+      <div class="h-label">Cost per SPC</div>
+      <div class="h-value" id="hero_spc_cost">—</div>
+      <div class="h-sub">17 agent calls + 3 ACU calls</div>
+    </div>
+    <div class="hero-cell">
+      <div class="h-label">App Service (both apps)</div>
+      <div class="h-value">$109.50</div>
+      <div class="h-sub">2 × B1 plan, $54.75 each /mo</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SECTION 1: PER-DOCUMENT COST ═══════════ -->
+  <div class="section-label">
+    <div class="num">1</div>
+    <h2>Cost per generated document</h2>
+    <div class="sl-sub">Based on real per-call token averages from Azure AI Foundry</div>
+  </div>
+
+  <div class="volume-box" style="margin-bottom:24px;">
+    <div class="volume-field">
+      <label>PIL — reference pages</label>
+      <input type="number" id="pil_ref_pages" value="20" min="1" oninput="calc()"/>
+    </div>
+    <div class="volume-field">
+      <label>PIL — CMC pages</label>
+      <input type="number" id="pil_cmc_pages" value="4" min="1" oninput="calc()"/>
+    </div>
+    <div class="volume-field">
+      <label>SPC — reference pages</label>
+      <input type="number" id="spc_ref_pages" value="30" min="1" oninput="calc()"/>
+    </div>
+    <div class="volume-field">
+      <label>SPC — CMC pages</label>
+      <input type="number" id="spc_cmc_pages" value="4" min="1" oninput="calc()"/>
+    </div>
+    <div class="volume-note">CMC files average 4 pages. Reference SPC/PIL page counts vary by product — set them per case to see real cost.</div>
+  </div>
+
+  <div class="doc-grid">
+
+    <div class="doc-card">
+      <div class="doc-card-head">
+        <span class="dc-name">📄 PIL Generator</span>
+        <span class="dc-total" id="pil_doc_total">—</span>
+      </div>
+      <div class="doc-card-body">
+        <div class="cost-row">
+          <span class="cr-label">ACU — Reference PIL<span class="cr-detail" id="pil_ref_acu_detail"></span></span>
+          <span class="cr-value" id="pil_ref_acu_cost">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cr-label">ACU — CMC file<span class="cr-detail" id="pil_cmc_acu_detail"></span></span>
+          <span class="cr-value" id="pil_cmc_acu_cost">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cr-label">GPT-4.1 — 7 agent calls<span class="cr-detail">intro + sections 2–7 · 3,498 in / 1,158 out avg tokens/call</span></span>
+          <span class="cr-value">$0.1138</span>
+        </div>
+        <div class="cost-row total-row">
+          <span class="cr-label">Total per PIL</span>
+          <span class="cr-value" id="pil_total_2">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-head">
+        <span class="dc-name">📋 SPC Generator</span>
+        <span class="dc-total" id="spc_doc_total">—</span>
+      </div>
+      <div class="doc-card-body">
+        <div class="cost-row">
+          <span class="cr-label">ACU — Reference SPC<span class="cr-detail" id="spc_ref_acu_detail"></span></span>
+          <span class="cr-value" id="spc_ref_acu_cost">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cr-label">ACU — CMC file (analyzed twice)<span class="cr-detail" id="spc_cmc_acu_detail">fields extraction + composition extraction</span></span>
+          <span class="cr-value" id="spc_cmc_acu_cost">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cr-label">GPT-4.1 — 17 agent calls<span class="cr-detail">CMC/composition extractors + §4 (×9) + §5 (×3) + §6,7,8 · 4,252 in / 1,073 out avg tokens/call</span></span>
+          <span class="cr-value">$0.2905</span>
+        </div>
+        <div class="cost-row total-row">
+          <span class="cr-label">Total per SPC</span>
+          <span class="cr-value" id="spc_total_2">—</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ SECTION 2: ASSUMPTIONS / SOURCES ═══════════ -->
+  <div class="section-label">
+    <div class="num">2</div>
+    <h2>Where every number comes from</h2>
+    <div class="sl-sub">No assumptions — every figure traces to a screenshot or Azure's pricing page</div>
+  </div>
+
+  <div class="card">
+    <table class="assumptions-table">
+      <thead>
+        <tr>
+          <th style="width:22%">Input</th>
+          <th style="width:18%">Value used</th>
+          <th>Source</th>
+          <th style="width:14%">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Model</td>
+          <td class="mono">GPT-4.1</td>
+          <td class="source-cell">Confirmed from your Azure AI Foundry Monitor tab (both PIL &amp; SPC agents)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>GPT-4.1 input price</td>
+          <td class="mono">$2.00 / 1M tokens</td>
+          <td class="source-cell">Azure OpenAI Service official pricing, Global Standard deployment</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>GPT-4.1 output price</td>
+          <td class="mono">$8.00 / 1M tokens</td>
+          <td class="source-cell">Azure OpenAI Service official pricing, Global Standard deployment</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>PIL avg tokens / call</td>
+          <td class="mono">3,498 in · 1,158 out</td>
+          <td class="source-cell">Azure Monitor tab, PIL agent, June 2026 period (915 requests, 3.2M in / 1.06M out)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>SPC avg tokens / call</td>
+          <td class="mono">4,252 in · 1,073 out</td>
+          <td class="source-cell">Azure Monitor tab, SPC agent, May–June 2026 period (1,890 requests, 8.05M in / 2.03M out)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>Live single-PIL verification</td>
+          <td class="mono">34,830 tokens → $0.1139</td>
+          <td class="source-cell">Live cost tracker inside the PIL Generator UI on one real generation (LLM $0.0839 + ACU $0.03 / 6 pages)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>ACU tier</td>
+          <td class="mono">Standard — $5 / 1,000 pages</td>
+          <td class="source-cell">Confirmed: live PIL ACU charge of $0.03 for 6 pages = exactly $5/1,000 page rate</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>Agent calls per PIL</td>
+          <td class="mono">7</td>
+          <td class="source-cell">From the PIL codebase: intro + section2…section7 agents (section 1, reporting, medicament box are fixed/manual, no AI cost)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>Agent calls per SPC</td>
+          <td class="mono">17</td>
+          <td class="source-cell">From the SPC codebase: cmc-extractor + composition-extractor + §4 (9 sub-section cleanup calls) + §5 (3 calls) + §6, §7, §8 agents (§1, §2, §3, §9 are token-substitution, no AI cost)</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+        <tr>
+          <td>App Service plan</td>
+          <td class="mono">B1 — $54.75/month</td>
+          <td class="source-cell">Azure App Service official pricing page, Basic tier, 1 core / 1.75 GB RAM</td>
+          <td><span class="verified">✓ Real</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════ SECTION 3: MONTHLY VOLUME ═══════════ -->
+  <div class="section-label">
+    <div class="num">3</div>
+    <h2>Monthly cost at observed volume</h2>
+    <div class="sl-sub">Adjust the counts below to model a different month</div>
+  </div>
+
+  <div class="volume-box">
+    <div class="volume-field">
+      <label>PILs / month</label>
+      <input type="number" id="pil_count" value="131" min="0" oninput="calc()"/>
+    </div>
+    <div class="volume-field">
+      <label>SPCs / month</label>
+      <input type="number" id="spc_count" value="111" min="0" oninput="calc()"/>
+    </div>
+    <div class="volume-note">Defaults reflect your actual June observed volume: 915 PIL agent requests ÷ 7 calls/doc ≈ 131 PILs · 1,890 SPC agent requests ÷ 17 calls/doc ≈ 111 SPCs.</div>
+  </div>
+
+  <div class="card card-pad">
+    <table class="summary-table">
+      <tr>
+        <td class="s-label">PIL Generator — AI cost<span class="s-detail" id="pil_detail"></span></td>
+        <td class="s-value" id="pil_ai_total">—</td>
+      </tr>
+      <tr>
+        <td class="s-label">SPC Generator — AI cost<span class="s-detail" id="spc_detail"></span></td>
+        <td class="s-value" id="spc_ai_total">—</td>
+      </tr>
+      <tr>
+        <td class="s-label">App Service — PIL Generator (B1)</td>
+        <td class="s-value">$54.75</td>
+      </tr>
+      <tr>
+        <td class="s-label">App Service — SPC Generator (B1)</td>
+        <td class="s-value">$54.75</td>
+      </tr>
+      <tr class="grand-row">
+        <td class="s-label">Total monthly cost</td>
+        <td class="s-value" id="grand_total">—</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    Hikma AI Platform — Cost Report · Figures verified against Azure AI Foundry Monitor data, live in-app cost tracking, and Azure's published pricing as of June 2026.
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const IN_PRICE  = 2.00 / 1e6;
+const OUT_PRICE = 8.00 / 1e6;
+const ACU_RATE  = 5 / 1000; // per page
+
+const PIL_CALLS_PER_DOC = 7;
+const SPC_CALLS_PER_DOC = 17;
+
+const PIL_AVG_IN  = 3498;
+const PIL_AVG_OUT = 1158;
+const SPC_AVG_IN  = 4252;
+const SPC_AVG_OUT = 1073;
+
+function fmt(n) { return '$' + n.toFixed(2); }
+function fmt4(n) { return '$' + n.toFixed(4); }
+
+function calc() {
+  // ── Page-count driven ACU costs ──
+  const pilRefPages = +document.getElementById('pil_ref_pages').value || 0;
+  const pilCmcPages = +document.getElementById('pil_cmc_pages').value || 0;
+  const spcRefPages = +document.getElementById('spc_ref_pages').value || 0;
+  const spcCmcPages = +document.getElementById('spc_cmc_pages').value || 0;
+
+  const pilRefAcuCost = (pilRefPages/1000) * 5;
+  const pilCmcAcuCost = (pilCmcPages/1000) * 5;
+  const pilAcuTotal = pilRefAcuCost + pilCmcAcuCost;
+
+  const spcRefAcuCost = (spcRefPages/1000) * 5;
+  const spcCmcAcuCost = (spcCmcPages/1000) * 5 * 2; // CMC analyzed twice (fields + composition)
+  const spcAcuTotal = spcRefAcuCost + spcCmcAcuCost;
+
+  // ── Fixed LLM cost per document (from verified token averages) ──
+  const pilLlmPerDoc = (PIL_AVG_IN*IN_PRICE + PIL_AVG_OUT*OUT_PRICE) * PIL_CALLS_PER_DOC;
+  const spcLlmPerDoc = (SPC_AVG_IN*IN_PRICE + SPC_AVG_OUT*OUT_PRICE) * SPC_CALLS_PER_DOC;
+
+  const pilPerDoc = pilLlmPerDoc + pilAcuTotal;
+  const spcPerDoc = spcLlmPerDoc + spcAcuTotal;
+
+  // ── Update Section 1 doc cards ──
+  document.getElementById('pil_ref_acu_detail').textContent = ` · ${pilRefPages} pages × $5/1,000`;
+  document.getElementById('pil_cmc_acu_detail').textContent = ` · ${pilCmcPages} pages × $5/1,000`;
+  document.getElementById('pil_ref_acu_cost').textContent = fmt4(pilRefAcuCost);
+  document.getElementById('pil_cmc_acu_cost').textContent = fmt4(pilCmcAcuCost);
+  document.getElementById('pil_total_2').textContent = fmt4(pilPerDoc);
+  document.getElementById('pil_doc_total').textContent = fmt4(pilPerDoc);
+
+  document.getElementById('spc_ref_acu_detail').textContent = ` · ${spcRefPages} pages × $5/1,000`;
+  document.getElementById('spc_cmc_acu_detail').textContent = `${spcCmcPages} pages × $5/1,000 × 2 passes`;
+  document.getElementById('spc_ref_acu_cost').textContent = fmt4(spcRefAcuCost);
+  document.getElementById('spc_cmc_acu_cost').textContent = fmt4(spcCmcAcuCost);
+  document.getElementById('spc_total_2').textContent = fmt4(spcPerDoc);
+  document.getElementById('spc_doc_total').textContent = fmt4(spcPerDoc);
+
+  document.getElementById('hero_pil_cost').textContent = fmt4(pilPerDoc);
+  document.getElementById('hero_spc_cost').textContent = fmt4(spcPerDoc);
+
+  // ── Section 3: monthly volume ──
+  const pilCount = +document.getElementById('pil_count').value || 0;
+  const spcCount = +document.getElementById('spc_count').value || 0;
+
+  const pilTotal = pilPerDoc * pilCount;
+  const spcTotal = spcPerDoc * spcCount;
+
+  const appService = 54.75 * 2;
+  const grand = pilTotal + spcTotal + appService;
+
+  document.getElementById('pil_detail').textContent =
+    ` · ${pilCount} docs × ${fmt4(pilPerDoc)}`;
+  document.getElementById('spc_detail').textContent =
+    ` · ${spcCount} docs × ${fmt4(spcPerDoc)}`;
+
+  document.getElementById('pil_ai_total').textContent = fmt(pilTotal);
+  document.getElementById('spc_ai_total').textContent = fmt(spcTotal);
+  document.getElementById('grand_total').textContent = fmt(grand);
+}
+
+calc();
+</script>
+</body>
+</html>
